@@ -1,6 +1,7 @@
+import { useCMS } from "../lib/cmsContext";
 import { useAnimationSystem } from "../lib/animations";
 
-const MARQUEE_PHRASES = [
+const FALLBACK_PHRASES = [
   "AUTHENTIC INDIAN CUISINE",
   "HYDERABADI TRADITIONS",
   "EXCEPTIONAL HOSPITALITY",
@@ -9,6 +10,17 @@ const MARQUEE_PHRASES = [
 
 export function BrandStrip() {
   const { reducedMotion } = useAnimationSystem();
+  const { sections } = useCMS();
+
+  const marqueeSection = sections.marquee;
+  const phrases: string[] =
+    marqueeSection?.extra?.items && Array.isArray(marqueeSection.extra.items) && marqueeSection.extra.items.length > 0
+      ? marqueeSection.extra.items
+      : FALLBACK_PHRASES;
+
+  if (marqueeSection && !marqueeSection.is_visible) {
+    return null;
+  }
 
   if (reducedMotion) {
     return (
@@ -17,7 +29,7 @@ export function BrandStrip() {
         className="bg-[#12352B]/65 border-y border-[#D9B780]/25 py-3.5 px-4 text-center"
       >
         <p className="text-[0.7rem] md:text-[0.74rem] tracking-[0.22em] uppercase text-[#FFF9F1]/90 font-medium">
-          {MARQUEE_PHRASES.join("  ✦  ")}
+          {phrases.join("  ✦  ")}
         </p>
       </section>
     );
@@ -36,7 +48,7 @@ export function BrandStrip() {
             aria-hidden={dupIndex === 1}
             className="flex items-center shrink-0"
           >
-            {MARQUEE_PHRASES.map((phrase) => (
+            {phrases.map((phrase) => (
               <span key={`${dupIndex}-${phrase}`} className="inline-flex items-center">
                 <span className="px-5 md:px-7 whitespace-nowrap">{phrase}</span>
                 <span className="text-[#D9B780]" aria-hidden="true">

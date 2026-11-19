@@ -3,6 +3,7 @@ import { ChevronDown, Facebook, Instagram } from "lucide-react";
 import { DeccanLogo } from "./DeccanLogo";
 import { SITE_INFO } from "../data/site";
 import { DrawGoldLine, RevealBlock } from "../lib/animations";
+import { useCMS } from "../lib/cmsContext";
 import type { RouteId } from "./Navbar";
 
 interface FooterProps {
@@ -11,6 +12,7 @@ interface FooterProps {
 }
 
 export function Footer({ onNavigate, onOpenReserve }: FooterProps) {
+  const { settings } = useCMS();
   const [openSection, setOpenSection] = useState<"nav" | "hours" | "visit" | null>(
     null
   );
@@ -18,6 +20,10 @@ export function Footer({ onNavigate, onOpenReserve }: FooterProps) {
   const toggle = (key: "nav" | "hours" | "visit") => {
     setOpenSection((prev) => (prev === key ? null : key));
   };
+
+  const hoursList = settings.opening_hours && settings.opening_hours.length > 0
+    ? settings.opening_hours
+    : SITE_INFO.hours;
 
   return (
     <footer className="relative bg-[#10110F] text-[#FFF9F1] border-t border-[#D9B780]/20 pb-24 md:pb-12">
@@ -36,11 +42,11 @@ export function Footer({ onNavigate, onOpenReserve }: FooterProps) {
               <DeccanLogo variant="light" size="md" />
             </button>
             <p className="text-[0.86rem] text-[#F7F2E9]/78 leading-relaxed max-w-xs">
-              Authentic Indian fine dining &amp; craft bar in {SITE_INFO.center}.
+              Authentic Indian fine dining &amp; craft bar in {settings.center || SITE_INFO.center}.
             </p>
             <div className="flex items-center gap-3 pt-1">
               <a
-                href="https://www.instagram.com"
+                href={settings.social_links?.instagram || "https://www.instagram.com"}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Deccan Spice Pompano on Instagram"
@@ -49,7 +55,7 @@ export function Footer({ onNavigate, onOpenReserve }: FooterProps) {
                 <Instagram className="w-4 h-4" />
               </a>
               <a
-                href="https://www.facebook.com"
+                href={settings.social_links?.facebook || "https://www.facebook.com"}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Deccan Spice Pompano on Facebook"
@@ -161,7 +167,7 @@ export function Footer({ onNavigate, onOpenReserve }: FooterProps) {
                 openSection === "hours" ? "block pb-2" : "hidden md:block"
               }`}
             >
-              {SITE_INFO.hours.map((row) => (
+              {hoursList.map((row) => (
                 <div key={row.days}>
                   <dt className="font-medium text-[#FFF9F1]">{row.days}</dt>
                   <dd>
@@ -194,22 +200,22 @@ export function Footer({ onNavigate, onOpenReserve }: FooterProps) {
                 openSection === "visit" ? "block pb-2" : "hidden md:block"
               }`}
             >
-              <p className="text-[#FFF9F1] font-medium">{SITE_INFO.center}</p>
-              <p>{SITE_INFO.address}</p>
+              <p className="text-[#FFF9F1] font-medium">{settings.center || SITE_INFO.center}</p>
+              <p>{settings.address || SITE_INFO.address}</p>
               <p className="tabular-nums pt-1">
                 <a
-                  href={SITE_INFO.phoneHref}
+                  href={settings.phone_href || `tel:${settings.phone}` || SITE_INFO.phoneHref}
                   className="text-[#FFF9F1] hover:text-[#D9B780] underline underline-offset-4 transition-colors"
                 >
-                  {SITE_INFO.phoneDisplay}
+                  {settings.phone || SITE_INFO.phoneDisplay}
                 </a>
               </p>
               <p>
                 <a
-                  href={SITE_INFO.emailHref}
+                  href={`mailto:${settings.email || SITE_INFO.email}`}
                   className="hover:text-[#D9B780] transition-colors"
                 >
-                  {SITE_INFO.email}
+                  {settings.email || SITE_INFO.email}
                 </a>
               </p>
             </address>

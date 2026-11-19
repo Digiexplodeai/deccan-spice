@@ -55,6 +55,7 @@ export interface MenuItem {
   description: string | null;
   price: number;
   image_url: string | null;
+  image_key?: string | null;
   is_veg: boolean;
   spice_level: number;
   is_available: boolean;
@@ -115,4 +116,104 @@ export interface RestaurantSettings {
   currency: string;
   accepting_orders: boolean;
   updated_at: string;
+}
+
+// CMS Database Types
+export interface SiteSettings {
+  id: string;
+  restaurant_name: string;
+  short_name: string;
+  tagline: string;
+  logo_url: string;
+  logo_key?: string | null;
+  logo_dark_url: string;
+  logo_dark_key?: string | null;
+  phone: string;
+  phone_href: string;
+  email: string;
+  address: string;
+  center: string;
+  google_maps_url: string;
+  reservation_url: string;
+  reservation_phone: string;
+  price_range: string;
+  opens_daily: string;
+  buffet_label: string;
+  social_links: {
+    instagram?: string;
+    facebook?: string;
+    tripadvisor?: string;
+    yelp?: string;
+  };
+  opening_hours: {
+    days: string;
+    lunch: string;
+    dinner: string;
+  }[];
+  seo_title: string;
+  seo_description: string;
+  updated_at: string;
+}
+
+export interface SiteSection {
+  id: string;
+  key: string;
+  title: string;
+  subtitle: string | null;
+  eyebrow: string | null;
+  body: string | null;
+  button_text: string | null;
+  button_link: string | null;
+  secondary_button_text: string | null;
+  secondary_button_link: string | null;
+  image_url: string | null;
+  image_key?: string | null;
+  image_alt?: string | null;
+  secondary_image_url: string | null;
+  secondary_image_key?: string | null;
+  secondary_image_alt?: string | null;
+  is_visible: boolean;
+  sort_order: number;
+  extra: Record<string, any>;
+  updated_at: string;
+}
+
+export interface GalleryItem {
+  id: string;
+  title: string;
+  caption: string | null;
+  category: string;
+  image_url: string;
+  image_key?: string | null;
+  alt_text?: string | null;
+  sort_order: number;
+  is_visible: boolean;
+  created_at: string;
+}
+
+export interface SignatureDish {
+  id: string;
+  name: string;
+  course: string;
+  price_label: string;
+  description: string | null;
+  tagline: string | null;
+  image_url: string;
+  image_key?: string | null;
+  mood_bg: string | null;
+  sort_order: number;
+  is_visible: boolean;
+  created_at: string;
+}
+
+export interface CmsReview {
+  id: string;
+  author: string;
+  source: string;
+  rating: string;
+  detail: string;
+  text: string;
+  sort_order: number;
+  is_visible: boolean;
+  created_at: string;
 }

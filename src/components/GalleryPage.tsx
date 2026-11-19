@@ -1,20 +1,43 @@
-import { useEffect, useRef, useState, type TouchEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type TouchEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { GALLERY_CATEGORIES, GALLERY_ITEMS } from "../data/site";
 import { DrawGoldLine, RevealBlock } from "../lib/animations";
 import { SafeImage } from "./SafeImage";
+import { useCMS } from "../lib/cmsContext";
 
 export function GalleryPage() {
+  const { gallery } = useCMS();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const touchStartX = useRef<number | null>(null);
 
-  const categories = ["All", ...GALLERY_CATEGORIES];
+  const allItems = useMemo(() => {
+    if (gallery && gallery.length > 0) {
+      return gallery.map((g) => ({
+        id: g.id,
+        title: g.title,
+        category: (g.category as any) || "The Restaurant",
+        caption: g.caption || "",
+        image: g.image_url,
+      }));
+    }
+    return GALLERY_ITEMS;
+  }, [gallery]);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    allItems.forEach((i) => {
+      if (i.category) set.add(i.category);
+    });
+    GALLERY_CATEGORIES.forEach((c) => set.add(c));
+    return ["All", ...Array.from(set)];
+  }, [allItems]);
+
   const visibleItems =
     selectedCategory === "All"
-      ? GALLERY_ITEMS
-      : GALLERY_ITEMS.filter((item) => item.category === selectedCategory);
+      ? allItems
+      : allItems.filter((item) => item.category === selectedCategory);
 
   useEffect(() => {
     if (activeIndex === null) return;

@@ -14,6 +14,7 @@ import {
   ScrollProgressBar,
   useAnimationSystem,
 } from "./lib/animations";
+import { CmsProvider } from "./lib/cmsContext";
 
 const MenuPage = lazy(() =>
   import("./components/MenuPage").then((m) => ({ default: m.MenuPage }))
@@ -213,45 +214,41 @@ export default function App() {
     return () => window.removeEventListener("popstate", handleLocationChange);
   }, []);
 
-  if (currentPath.startsWith("/order")) {
-    return (
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-[#10110F] text-[#D9B780] flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-8 h-8 rounded-full border-2 border-[#D9B780] border-t-transparent animate-spin mb-3" />
-            <span className="text-xs tracking-widest uppercase font-serif">
-              Deccan Spice Dine-In
-            </span>
-          </div>
-        }
-      >
-        <OrderCustomerPage />
-      </Suspense>
-    );
-  }
-
-  if (currentPath.startsWith("/admin")) {
-    return (
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-[#10110F] text-[#D9B780] flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-8 h-8 rounded-full border-2 border-[#D9B780] border-t-transparent animate-spin mb-3" />
-            <span className="text-xs tracking-widest uppercase font-serif">
-              Deccan Spice Staff Portal
-            </span>
-          </div>
-        }
-      >
-        <AdminDashboard />
-      </Suspense>
-    );
-  }
-
   return (
-    <MotionConfig reducedMotion="user">
-      <AnimationProvider>
-        <AppShell />
-      </AnimationProvider>
-    </MotionConfig>
+    <CmsProvider>
+      {currentPath.startsWith("/order") ? (
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-[#10110F] text-[#D9B780] flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-8 h-8 rounded-full border-2 border-[#D9B780] border-t-transparent animate-spin mb-3" />
+              <span className="text-xs tracking-widest uppercase font-serif">
+                Deccan Spice Dine-In
+              </span>
+            </div>
+          }
+        >
+          <OrderCustomerPage />
+        </Suspense>
+      ) : currentPath.startsWith("/admin") ? (
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-[#10110F] text-[#D9B780] flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-8 h-8 rounded-full border-2 border-[#D9B780] border-t-transparent animate-spin mb-3" />
+              <span className="text-xs tracking-widest uppercase font-serif">
+                Deccan Spice Staff Portal
+              </span>
+            </div>
+          }
+        >
+          <AdminDashboard />
+        </Suspense>
+      ) : (
+        <MotionConfig reducedMotion="user">
+          <AnimationProvider>
+            <AppShell />
+          </AnimationProvider>
+        </MotionConfig>
+      )}
+    </CmsProvider>
   );
 }

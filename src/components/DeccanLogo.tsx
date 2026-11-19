@@ -1,4 +1,5 @@
 import { ASSETS } from "../data/site";
+import { useCMS } from "../lib/cmsContext";
 
 interface DeccanLogoProps {
   variant?: "dark" | "light";
@@ -17,12 +18,19 @@ export function DeccanLogo({
   size = "sm",
   className = "",
 }: DeccanLogoProps) {
-  const src = variant === "light" ? ASSETS.brandLogoDarkBg : ASSETS.brandLogo;
+  const { settings } = useCMS();
+
+  const src =
+    variant === "light"
+      ? settings.logo_dark_url || settings.logo_url || ASSETS.brandLogoDarkBg
+      : settings.logo_url || ASSETS.brandLogo;
+
+  const alt = settings.restaurant_name || "Deccan Spice Indian Kitchen + Bar";
 
   return (
     <img
       src={src}
-      alt="Deccan Spice Indian Kitchen + Bar"
+      alt={alt}
       width={960}
       height={240}
       decoding="async"

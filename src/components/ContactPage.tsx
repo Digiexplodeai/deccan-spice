@@ -2,14 +2,26 @@ import { useState, type FormEvent } from "react";
 import { CheckCircle2, Clock, Mail, MapPin, Phone } from "lucide-react";
 import { SITE_INFO } from "../data/site";
 import { DrawGoldLine, MagneticButton, RevealBlock } from "../lib/animations";
+import { useCMS } from "../lib/cmsContext";
 
 export function ContactPage() {
+  const { settings } = useCMS();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [topic, setTopic] = useState("Private Dining & Catering");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  const restaurantName = settings.restaurant_name || SITE_INFO.name;
+  const restaurantTagline = settings.tagline || SITE_INFO.tagline;
+  const address = settings.address || SITE_INFO.address;
+  const center = settings.center || SITE_INFO.center;
+  const phoneDisplay = settings.phone || SITE_INFO.phoneDisplay;
+  const phoneHref = settings.phone ? `tel:${settings.phone.replace(/[^0-9+]/g, "")}` : SITE_INFO.phoneHref;
+  const emailDisplay = settings.email || SITE_INFO.email;
+  const emailHref = settings.email ? `mailto:${settings.email}` : SITE_INFO.emailHref;
+  const hoursList = settings.opening_hours && settings.opening_hours.length > 0 ? settings.opening_hours : SITE_INFO.hours;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -30,7 +42,7 @@ export function ContactPage() {
             style={{ fontSize: "clamp(2.25rem, 4.2vw, 3.9rem)" }}
           >
             Find Us in{" "}
-            <em className="italic text-[#D9B780]">Pompano Marketplace</em>
+            <em className="italic text-[#D9B780]">{center}</em>
           </h1>
           <p className="text-[0.95rem] leading-relaxed text-[#F7F2E9]/85">
             Join us for daily lunch or dinner service, weekend buffet, or reach out
@@ -43,10 +55,10 @@ export function ContactPage() {
             <div className="p-6 md:p-8 bg-[#1D1712]/65 border border-[#D9B780]/25 space-y-5">
               <div>
                 <h2 className="font-display text-2xl text-[#FFF9F1]">
-                  {SITE_INFO.name}
+                  {restaurantName}
                 </h2>
                 <p className="text-[0.82rem] text-[#D9B780] mt-0.5">
-                  {SITE_INFO.tagline} · {SITE_INFO.priceRange}
+                  {restaurantTagline} · {SITE_INFO.priceRange}
                 </p>
               </div>
 
@@ -54,28 +66,28 @@ export function ContactPage() {
                 <div className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-[#D9B780] shrink-0 mt-1" />
                   <div>
-                    <p className="font-medium">{SITE_INFO.center}</p>
-                    <p className="text-[#F7F2E9]/80">{SITE_INFO.address}</p>
+                    <p className="font-medium">{center}</p>
+                    <p className="text-[#F7F2E9]/80">{address}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <Phone className="w-4 h-4 text-[#D9B780] shrink-0 mt-1" />
                   <a
-                    href={SITE_INFO.phoneHref}
+                    href={phoneHref}
                     className="font-medium hover:text-[#D9B780] underline underline-offset-4 tabular-nums"
                   >
-                    {SITE_INFO.phoneDisplay}
+                    {phoneDisplay}
                   </a>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <Mail className="w-4 h-4 text-[#D9B780] shrink-0 mt-1" />
                   <a
-                    href={SITE_INFO.emailHref}
+                    href={emailHref}
                     className="font-medium hover:text-[#D9B780] underline underline-offset-4"
                   >
-                    {SITE_INFO.email}
+                    {emailDisplay}
                   </a>
                 </div>
               </div>
@@ -86,7 +98,7 @@ export function ContactPage() {
                   <span>{SITE_INFO.opensDaily}</span>
                 </div>
                 <dl className="space-y-1.5 text-[0.82rem] tabular-nums">
-                  {SITE_INFO.hours.map((row) => (
+                  {hoursList.map((row) => (
                     <div key={row.days} className="flex justify-between gap-4">
                       <dt className="font-medium text-[#FFF9F1]">{row.days}</dt>
                       <dd className="text-[#F7F2E9]/80 text-right">

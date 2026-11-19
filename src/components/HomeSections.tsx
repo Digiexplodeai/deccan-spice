@@ -19,6 +19,7 @@ import {
   RevealBlock,
   useAnimationSystem,
 } from "../lib/animations";
+import { useCMS } from "../lib/cmsContext";
 import type { RouteId } from "./Navbar";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -46,12 +47,49 @@ export function HomeSections({
   const [activeReview, setActiveReview] = useState(0);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
-  // Unique gallery exhibition tiles (never repeated elsewhere on homepage)
-  const exhibitionPhotos: GalleryPhoto[] = [
-    GALLERY_ITEMS[0], // Marble & Brass Buffet Counter
-    GALLERY_ITEMS[1], // Spiced Craft Cocktails at the Bar
-    GALLERY_ITEMS[2], // Saffron Cardamom Gulab Jamun
-  ];
+  const { settings, sections, signatureDishes, gallery, reviews } = useCMS();
+
+  // Signature Dishes from CMS or fallback
+  const showcaseDishes = signatureDishes.length > 0
+    ? signatureDishes.map((d) => ({
+        id: d.id,
+        name: d.name,
+        course: d.course,
+        priceLabel: d.price_label,
+        tagline: d.tagline || d.description || "",
+        image: d.image_url,
+        moodBg:
+          d.mood_bg ||
+          "radial-gradient(circle at 65% 42%, rgba(217,183,128,0.16), rgba(16,17,15,0.7) 52%, #10110F 88%)",
+      }))
+    : SIGNATURE_SHOWCASE;
+
+  // Unique gallery exhibition tiles from CMS or fallback
+  const exhibitionPhotos: GalleryPhoto[] =
+    gallery.length >= 3
+      ? gallery.slice(0, 3).map((g) => ({
+          id: g.id,
+          title: g.title,
+          category: (g.category as any) || "The Restaurant",
+          caption: g.caption || "",
+          image: g.image_url,
+        }))
+      : [
+          GALLERY_ITEMS[0], // Marble & Brass Buffet Counter
+          GALLERY_ITEMS[1], // Spiced Craft Cocktails at the Bar
+          GALLERY_ITEMS[2], // Saffron Cardamom Gulab Jamun
+        ];
+
+  // Reviews from CMS or fallback
+  const reviewsList =
+    reviews.length > 0
+      ? reviews.map((r) => ({
+          platform: r.source,
+          score: r.rating,
+          detail: r.detail || "Verified diner rating",
+          summary: r.text,
+        }))
+      : SITE_INFO.ratings;
 
   // 1. Coordinated Hero Cinematic Opening Sequence (synchronized with BrandIntro completion)
   useEffect(() => {
@@ -296,12 +334,12 @@ export function HomeSections({
 
   // Auto-advance verified ratings gently every 7.5s
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || reviewsList.length <= 1) return;
     const timer = window.setInterval(() => {
-      setActiveReview((prev) => (prev + 1) % SITE_INFO.ratings.length);
+      setActiveReview((prev) => (prev + 1) % reviewsList.length);
     }, 7500);
     return () => window.clearInterval(timer);
-  }, [reducedMotion]);
+  }, [reducedMotion, reviewsList.length]);
 
   // Keyboard navigation for gallery lightbox
   useEffect(() => {
@@ -332,7 +370,7 @@ export function HomeSections({
   const stepDish = (delta: number) => {
     setDishDirection(delta);
     setActiveDish(
-      (prev) => (prev + delta + SIGNATURE_SHOWCASE.length) % SIGNATURE_SHOWCASE.length
+      (prev) => (prev + delta + showcaseDishes.length) % showcaseDishes.length
     );
   };
 
@@ -367,10 +405,17 @@ export function HomeSections({
     lightboxTouchX.current = null;
   };
 
-  const currentDish = SIGNATURE_SHOWCASE[activeDish];
-  const currentReview = SITE_INFO.ratings[activeReview];
+  const currentDish = showcaseDishes[activeDish] || showcaseDishes[0];
+  const currentReview = reviewsList[activeReview] || reviewsList[0];
   const activeLightbox = lightboxIdx !== null ? exhibitionPhotos[lightboxIdx] : null;
-  const dishProgressPercent = ((activeDish + 1) / SIGNATURE_SHOWCASE.length) * 100;
+  const dishProgressPercent = ((activeDish + 1) / showcaseDishes.length) * 100;
+
+  const heroSec = sections.hero;
+  const storySec = sections.story;
+  const bannerSec = sections.banner;
+  const gallerySec = sections.gallery;
+  const reviewsSec = sections.reviews;
+  const ctaSec = sections.cta;
 
   return (
     <div ref={rootRef}>
@@ -383,8 +428,8 @@ export function HomeSections({
         >
           <div className="hero-bg-reveal w-full h-full">
             <img
-              src={ASSETS.heroDiningRoom}
-              alt="Candlelit dining room with brass chandeliers inside Deccan Spice Pompano"
+              src={heroSec?.image_url || ASSETS.heroDiningRoom}
+              alt={heroSec?.image_alt || "Candlelit dining room with brass chandeliers inside Deccan Spice Pompano"}
               loading="eager"
               decoding="async"
               fetchPriority="high"
@@ -419,7 +464,7 @@ export function HomeSections({
         <div className="relative z-10 luxury-container pb-11 sm:pb-16 md:pb-12 pt-28 md:pt-32">
           <div className="max-w-[700px] text-left">
             <p className="hero-eyebrow text-[0.7rem] sm:text-[0.74rem] md:text-[0.8rem] tracking-[0.2em] uppercase text-[#D9B780] font-semibold drop-shadow-[0_1px_10px_rgba(16,17,15,0.65)]">
-              INDIAN FINE DINING · POMPANO BEACH
+              {heroSec?.eyebrow || "INDIAN FINE DINING · POMPANO BEACH"}
             </p>
 
             <h1
@@ -428,12 +473,12 @@ export function HomeSections({
             >
               <span className="block overflow-hidden pb-0.5">
                 <span className="hero-line block text-[#FFF9F1]">
-                  India, Served
+                  {heroSec?.title || "India, Served"}
                 </span>
               </span>
               <span className="block overflow-hidden pb-1">
                 <em className="hero-line block italic text-[#D9B780] mt-0.5 md:mt-1">
-                  Beautifully.
+                  {heroSec?.subtitle || "Beautifully."}
                 </em>
               </span>
             </h1>
@@ -444,7 +489,7 @@ export function HomeSections({
             />
 
             <p className="hero-desc mt-4 text-[0.98rem] sm:text-[1.05rem] md:text-[1.14rem] leading-[1.6] text-[#FFF9F1]/92 max-w-[460px] font-normal drop-shadow-[0_1px_12px_rgba(16,17,15,0.65)]">
-              Authentic flavors. Extraordinary moments.
+              {heroSec?.body || "Authentic flavors. Extraordinary moments."}
             </p>
 
             <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4">
@@ -453,7 +498,7 @@ export function HomeSections({
                   onClick={onOpenReserve}
                   className="w-full sm:w-auto px-7 md:px-8 py-3.5 bg-[#811C36] hover:bg-[#67142A] border border-[#D9B780]/65 text-[#FFF9F1] text-[0.78rem] md:text-[0.82rem] font-medium tracking-[0.13em] uppercase transition-all duration-200 hover:-translate-y-0.5 shadow-lg whitespace-nowrap min-h-[46px] text-center"
                 >
-                  Reserve Your Table
+                  {heroSec?.button_text || "Reserve Your Table"}
                 </MagneticButton>
               </div>
               <button
@@ -461,7 +506,7 @@ export function HomeSections({
                 onClick={() => onNavigate("menu")}
                 className="hero-cta-item cursor-pointer px-7 md:px-8 py-3.5 bg-[#10110F]/40 backdrop-blur-[2px] border border-[#D9B780]/80 hover:bg-[#D9B780] hover:border-[#D9B780] hover:text-[#10110F] text-[#FFF9F1] text-[0.78rem] md:text-[0.82rem] font-medium tracking-[0.13em] uppercase transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap min-h-[46px] text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D9B780]"
               >
-                Explore Our Menu
+                {heroSec?.secondary_button_text || "Explore Our Menu"}
               </button>
             </div>
           </div>
@@ -489,8 +534,8 @@ export function HomeSections({
           <div className="lg:col-span-7 relative">
             <div className="story-photo-main overflow-hidden bg-[#12352B] lg:w-[86%]">
               <SafeImage
-                src={ASSETS.introInterior}
-                alt="Architectural dining room banquettes and brass globe chandeliers at Deccan Spice"
+                src={storySec?.image_url || ASSETS.introInterior}
+                alt={storySec?.image_alt || "Architectural dining room banquettes and brass globe chandeliers at Deccan Spice"}
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="w-full aspect-[4/3] object-cover object-[18%_55%]"
               />
@@ -498,8 +543,8 @@ export function HomeSections({
 
             <div className="story-photo-overlap overflow-hidden mt-3 sm:mt-4 lg:mt-0 lg:w-[46%] lg:ml-auto lg:-mt-36 relative z-10 border-[5px] border-[#F7F2E9] shadow-2xl bg-[#10110F]">
               <SafeImage
-                src={ASSETS.spicedAppetizer}
-                alt="Handcrafted golden samosas and spiced fritters plated on honed dark stone"
+                src={storySec?.secondary_image_url || ASSETS.spicedAppetizer}
+                alt={storySec?.secondary_image_alt || "Handcrafted golden samosas and spiced fritters plated on honed dark stone"}
                 sizes="(max-width: 1024px) 100vw, 25vw"
                 className="w-full aspect-[16/10] lg:aspect-[3/4] object-cover"
               />
@@ -513,24 +558,23 @@ export function HomeSections({
               className="story-gold-line w-14 h-[1px] bg-[#D9B780] origin-left"
             />
             <p className="story-copy text-[0.72rem] tracking-[0.22em] uppercase text-[#811C36] font-semibold">
-              Our Heritage · Pompano Beach
+              {storySec?.eyebrow || "Our Heritage · Pompano Beach"}
             </p>
             <h2
               className="font-display text-[#10110F] font-medium leading-[1.06]"
               style={{ fontSize: "clamp(2.1rem, 3.8vw, 3.6rem)" }}
             >
               <span className="block overflow-hidden">
-                <span className="story-line block">A Journey Through</span>
+                <span className="story-line block">{storySec?.title || "A Journey Through"}</span>
               </span>
               <span className="block overflow-hidden pb-1">
                 <em className="story-line block italic text-[#811C36]">
-                  India&rsquo;s Flavors.
+                  {storySec?.subtitle || "India’s Flavors."}
                 </em>
               </span>
             </h2>
-            <p className="story-copy text-[0.96rem] md:text-[1.04rem] leading-[1.7] text-[#4C453E] max-w-md">
-              Discover authentic recipes, aromatic spices, and the warmth of Indian
-              hospitality in the heart of Pompano Beach.
+            <p className="story-copy text-[0.96rem] md:text-[1.04rem] leading-[1.7] text-[#4C453E] max-w-md whitespace-pre-line">
+              {storySec?.body || "Discover authentic recipes, aromatic spices, and the warmth of Indian hospitality in the heart of Pompano Beach."}
             </p>
             <div className="story-copy pt-1">
               <button
@@ -538,7 +582,7 @@ export function HomeSections({
                 onClick={() => onNavigate("about")}
                 className="group cursor-pointer inline-flex items-center gap-3 text-[0.8rem] font-semibold tracking-[0.14em] uppercase text-[#10110F] hover:text-[#811C36] border-b-2 border-[#D9B780] hover:border-[#811C36] pb-1.5 transition-colors duration-200 min-h-[44px] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#811C36]"
               >
-                <span>Our Story</span>
+                <span>{storySec?.button_text || "Our Story"}</span>
                 <ArrowRight className="w-4 h-4 text-[#811C36] transition-transform duration-250 group-hover:translate-x-1.5" />
               </button>
             </div>
@@ -560,14 +604,14 @@ export function HomeSections({
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#D9B780]/20 pb-5">
             <RevealBlock className="space-y-2">
               <p className="text-[0.72rem] tracking-[0.22em] uppercase text-[#D9B780] font-semibold">
-                Signature Creations
+                {sections.signature?.eyebrow || "Signature Creations"}
               </p>
               <h2
                 className="font-display font-medium leading-[1.05]"
                 style={{ fontSize: "clamp(2.1rem, 4.1vw, 3.9rem)" }}
               >
-                Crafted Over Fire &amp;{" "}
-                <em className="italic text-[#D9B780]">Saffron.</em>
+                {sections.signature?.title || "Crafted Over Fire &"}{" "}
+                <em className="italic text-[#D9B780]">{sections.signature?.subtitle || "Saffron."}</em>
               </h2>
             </RevealBlock>
 
@@ -576,7 +620,7 @@ export function HomeSections({
               onClick={() => onNavigate("menu")}
               className="hidden md:inline-flex items-center gap-2 cursor-pointer text-[0.78rem] font-medium tracking-[0.12em] uppercase text-[#D9B780] hover:text-[#FFF9F1] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D9B780]"
             >
-              Discover the Full Menu
+              {sections.signature?.button_text || "Discover the Full Menu"}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -667,7 +711,7 @@ export function HomeSections({
                       </motion.span>
                     </AnimatePresence>
                     <span className="text-[0.8rem] text-[#F7F2E9]/55 tracking-[0.14em]">
-                      / 0{SIGNATURE_SHOWCASE.length}
+                      / 0{showcaseDishes.length}
                     </span>
                   </div>
 
@@ -736,7 +780,7 @@ export function HomeSections({
                   Swipe dish or select below
                 </p>
                 <div className="grid grid-cols-4 gap-2.5">
-                  {SIGNATURE_SHOWCASE.map((dish, idx) => {
+                  {showcaseDishes.map((dish, idx) => {
                     const isActive = idx === activeDish;
                     return (
                       <button
@@ -790,8 +834,8 @@ export function HomeSections({
       <section className="experience-section relative py-20 md:py-36 bg-[#12352B] text-[#FFF9F1] overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <SafeImage
-            src={ASSETS.experienceLounge}
-            alt="Evening toast and celebration cocktails at Deccan Spice Pompano"
+            src={bannerSec?.image_url || ASSETS.experienceLounge}
+            alt={bannerSec?.image_alt || "Evening toast and celebration cocktails at Deccan Spice Pompano"}
             sizes="100vw"
             className="experience-parallax-img w-full h-[116%] -top-[8%] relative object-cover object-center"
           />
@@ -808,17 +852,17 @@ export function HomeSections({
             className="font-display font-medium leading-[1.03] drop-shadow-[0_2px_16px_rgba(16,17,15,0.55)]"
             style={{ fontSize: "clamp(2.3rem, 5vw, 4.7rem)" }}
           >
-            More Than a <em className="italic text-[#D9B780]">Meal.</em>
+            {bannerSec?.title || "More Than a Meal."}
           </h2>
           <p className="text-[1rem] md:text-[1.15rem] text-[#FFF9F1]/92 font-normal drop-shadow-[0_1px_10px_rgba(16,17,15,0.65)]">
-            Make every occasion extraordinary.
+            {bannerSec?.body || "Make every occasion extraordinary."}
           </p>
           <div className="pt-2">
             <MagneticButton
               onClick={onOpenReserve}
               className="px-8 py-3.5 border border-[#D9B780]/85 bg-[#10110F]/55 backdrop-blur-xs hover:bg-[#D9B780] hover:text-[#10110F] text-[#FFF9F1] text-[0.78rem] font-medium tracking-[0.12em] uppercase transition-colors min-h-[46px]"
             >
-              Experience Deccan Spice
+              {bannerSec?.button_text || "Experience Deccan Spice"}
             </MagneticButton>
           </div>
         </RevealBlock>
@@ -830,14 +874,14 @@ export function HomeSections({
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#D9B780]/22 pb-5">
             <RevealBlock className="space-y-2">
               <p className="text-[0.72rem] tracking-[0.22em] uppercase text-[#D9B780] font-semibold">
-                Visual Exhibition
+                {gallerySec?.eyebrow || "Visual Exhibition"}
               </p>
               <h2
                 className="font-display font-medium leading-[1.05]"
                 style={{ fontSize: "clamp(2.1rem, 4vw, 3.8rem)" }}
               >
-                Atmosphere &amp;{" "}
-                <em className="italic text-[#D9B780]">Celebrations</em>
+                {gallerySec?.title || "Atmosphere &"}{" "}
+                <em className="italic text-[#D9B780]">{gallerySec?.subtitle || "Celebrations"}</em>
               </h2>
             </RevealBlock>
             <button
@@ -845,7 +889,7 @@ export function HomeSections({
               onClick={() => onNavigate("gallery")}
               className="group cursor-pointer inline-flex items-center gap-2 text-[0.78rem] font-medium tracking-[0.12em] uppercase text-[#D9B780] hover:text-[#FFF9F1] transition-colors duration-200 self-start sm:self-auto min-h-[44px] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D9B780]"
             >
-              <span>Explore Gallery</span>
+              <span>{gallerySec?.button_text || "Explore Gallery"}</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-250 group-hover:translate-x-1" />
             </button>
           </div>
@@ -913,13 +957,14 @@ export function HomeSections({
         <RevealBlock className="luxury-container max-w-3xl text-center space-y-5">
           <div className="space-y-1.5">
             <p className="text-[0.7rem] tracking-[0.22em] uppercase text-[#811C36] font-semibold">
-              Verified Guest Ratings · Pompano Beach
+              {reviewsSec?.eyebrow || "Verified Guest Ratings · Pompano Beach"}
             </p>
             <h2
               className="font-display font-medium leading-[1.05]"
               style={{ fontSize: "clamp(2rem, 3.5vw, 3.1rem)" }}
             >
-              Memorable <em className="italic text-[#811C36]">Moments.</em>
+              {reviewsSec?.title || "Memorable"}{" "}
+              <em className="italic text-[#811C36]">{reviewsSec?.subtitle || "Moments."}</em>
             </h2>
           </div>
 
@@ -961,7 +1006,7 @@ export function HomeSections({
               onClick={() =>
                 setActiveReview(
                   (prev) =>
-                    (prev - 1 + SITE_INFO.ratings.length) % SITE_INFO.ratings.length
+                    (prev - 1 + reviewsList.length) % reviewsList.length
                 )
               }
               aria-label="Previous verified rating"
@@ -970,9 +1015,9 @@ export function HomeSections({
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-2">
-              {SITE_INFO.ratings.map((item, idx) => (
+              {reviewsList.map((item, idx) => (
                 <button
-                  key={item.platform}
+                  key={`${item.platform}-${idx}`}
                   type="button"
                   onClick={() => setActiveReview(idx)}
                   aria-label={`Show ${item.platform} rating`}
@@ -985,7 +1030,7 @@ export function HomeSections({
             <button
               type="button"
               onClick={() =>
-                setActiveReview((prev) => (prev + 1) % SITE_INFO.ratings.length)
+                setActiveReview((prev) => (prev + 1) % reviewsList.length)
               }
               aria-label="Next verified rating"
               className="w-11 h-11 cursor-pointer border border-[#D9B780]/70 flex items-center justify-center text-[#10110F] hover:border-[#811C36] hover:text-[#811C36] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#811C36]"
@@ -997,51 +1042,53 @@ export function HomeSections({
       </section>
 
       {/* 09. LUXURY RESERVATION SECTION */}
-      <section className="reservation-section scroll-mt-24 relative py-20 md:py-28 bg-[#10110F] text-[#FFF9F1] overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <SafeImage
-            src={ASSETS.reservationTable}
-            alt="Intimate candlelit dinner table set with hammered brass charger plates"
-            sizes="100vw"
-            className="reservation-parallax-img w-full h-[112%] -top-[6%] relative object-cover object-center"
-          />
-        </div>
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#10110F]/92 via-[#10110F]/66 to-[#10110F]/76"
-        />
-
-        <RevealBlock className="relative z-10 luxury-container">
-          <div className="max-w-2xl mx-auto text-center p-7 sm:p-10 md:p-14 border border-[#D9B780]/45 bg-[#10110F]/74 backdrop-blur-md space-y-5">
-            <DrawGoldLine className="w-16" origin="center" />
-            <h2
-              className="font-display font-medium leading-[1.05]"
-              style={{ fontSize: "clamp(2.15rem, 4.3vw, 4.1rem)" }}
-            >
-              An Extraordinary Evening{" "}
-              <em className="italic text-[#D9B780]">Awaits.</em>
-            </h2>
-            <p className="text-[0.96rem] md:text-[1.06rem] text-[#F7F2E9]/90">
-              Your next memorable dining experience begins here.
-            </p>
-            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5">
-              <MagneticButton
-                onClick={onOpenReserve}
-                className="px-7 py-3.5 bg-[#811C36] hover:bg-[#67142A] border border-[#D9B780]/60 text-[#FFF9F1] text-[0.78rem] font-medium tracking-[0.12em] uppercase transition-colors min-h-[46px]"
-              >
-                Reserve Your Table
-              </MagneticButton>
-              <a
-                href={SITE_INFO.phoneHref}
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-[#D9B780]/75 hover:bg-[#D9B780] hover:text-[#10110F] text-[#FFF9F1] text-[0.78rem] font-medium tracking-[0.12em] uppercase transition-colors min-h-[46px]"
-              >
-                <Phone className="w-3.5 h-3.5 text-[#D9B780]" />
-                Call Restaurant
-              </a>
-            </div>
+      {ctaSec?.is_visible !== false && (
+        <section className="reservation-section scroll-mt-24 relative py-20 md:py-28 bg-[#10110F] text-[#FFF9F1] overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <SafeImage
+              src={ctaSec?.image_url || ASSETS.reservationTable}
+              alt={ctaSec?.image_alt || "Intimate candlelit dinner table set with hammered brass charger plates"}
+              sizes="100vw"
+              className="reservation-parallax-img w-full h-[112%] -top-[6%] relative object-cover object-center"
+            />
           </div>
-        </RevealBlock>
-      </section>
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#10110F]/92 via-[#10110F]/66 to-[#10110F]/76"
+          />
+
+          <RevealBlock className="relative z-10 luxury-container">
+            <div className="max-w-2xl mx-auto text-center p-7 sm:p-10 md:p-14 border border-[#D9B780]/45 bg-[#10110F]/74 backdrop-blur-md space-y-5">
+              <DrawGoldLine className="w-16" origin="center" />
+              <h2
+                className="font-display font-medium leading-[1.05]"
+                style={{ fontSize: "clamp(2.15rem, 4.3vw, 4.1rem)" }}
+              >
+                {ctaSec?.title || "An Extraordinary Evening"}{" "}
+                <em className="italic text-[#D9B780]">{ctaSec?.subtitle || "Awaits."}</em>
+              </h2>
+              <p className="text-[0.96rem] md:text-[1.06rem] text-[#F7F2E9]/90">
+                {ctaSec?.body || "Your next memorable dining experience begins here."}
+              </p>
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5">
+                <MagneticButton
+                  onClick={onOpenReserve}
+                  className="px-7 py-3.5 bg-[#811C36] hover:bg-[#67142A] border border-[#D9B780]/60 text-[#FFF9F1] text-[0.78rem] font-medium tracking-[0.12em] uppercase transition-colors min-h-[46px]"
+                >
+                  {ctaSec?.button_text || "Reserve Your Table"}
+                </MagneticButton>
+                <a
+                  href={settings?.phone ? `tel:${settings.phone.replace(/[^0-9+]/g, "")}` : SITE_INFO.phoneHref}
+                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-[#D9B780]/75 hover:bg-[#D9B780] hover:text-[#10110F] text-[#FFF9F1] text-[0.78rem] font-medium tracking-[0.12em] uppercase transition-colors min-h-[46px]"
+                >
+                  <Phone className="w-3.5 h-3.5 text-[#D9B780]" />
+                  {ctaSec?.secondary_button_text || "Call Restaurant"}
+                </a>
+              </div>
+            </div>
+          </RevealBlock>
+        </section>
+      )}
 
       {/* Swipeable Fullscreen Exhibition Lightbox */}
       <AnimatePresence>

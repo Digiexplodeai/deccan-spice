@@ -6,6 +6,7 @@ import {
   RevealBlock,
 } from "../lib/animations";
 import { SafeImage } from "./SafeImage";
+import { useCMS } from "../lib/cmsContext";
 import type { RouteId } from "./Navbar";
 
 interface AboutPageProps {
@@ -14,6 +15,11 @@ interface AboutPageProps {
 }
 
 export function AboutPage({ onNavigate, onOpenReserve }: AboutPageProps) {
+  const { settings, sections } = useCMS();
+  const storySec = sections.story;
+  const restaurantName = settings.restaurant_name || SITE_INFO.name;
+  const centerName = settings.center || SITE_INFO.center;
+
   return (
     <div className="pt-24 md:pt-32 pb-24 bg-[#10110F] text-[#FFF9F1] min-h-screen">
       <div className="luxury-container space-y-14 md:space-y-20">
@@ -21,27 +27,25 @@ export function AboutPage({ onNavigate, onOpenReserve }: AboutPageProps) {
           <RevealBlock className="lg:col-span-6 space-y-5">
             <DrawGoldLine className="w-14" origin="left" />
             <p className="text-[0.72rem] tracking-[0.22em] uppercase text-[#D9B780] font-medium">
-              Our Heritage · Pompano Beach
+              {storySec?.eyebrow || "Our Heritage · Pompano Beach"}
             </p>
             <h1
               className="font-display font-normal leading-[1.04]"
               style={{ fontSize: "clamp(2.25rem, 4.5vw, 4.1rem)" }}
             >
-              From the Deccan Plateau to{" "}
-              <em className="italic text-[#D9B780]">South Florida</em>
+              {storySec?.title || "From the Deccan Plateau to"}{" "}
+              <em className="italic text-[#D9B780]">{storySec?.subtitle || "South Florida"}</em>
             </h1>
             <p className="text-[0.96rem] leading-[1.7] text-[#F7F2E9]/85">
-              {SITE_INFO.name} brings centuries-old Hyderabadi and South Indian
-              culinary technique to {SITE_INFO.center}. From whole-spice blends roasted
-              each morning to sealed-pot dum biryanis and clay-oven tandoor platters,
-              every dish balances warmth, aroma, and craft.
+              {storySec?.body ||
+                `${restaurantName} brings centuries-old Hyderabadi and South Indian culinary technique to ${centerName}. From whole-spice blends roasted each morning to sealed-pot dum biryanis and clay-oven tandoor platters, every dish balances warmth, aroma, and craft.`}
             </p>
             <div className="pt-2 flex flex-wrap gap-3.5">
               <MagneticButton
                 onClick={onOpenReserve}
                 className="px-6 py-3 bg-[#811C36] hover:bg-[#67142A] border border-[#D9B780]/55 text-[#FFF9F1] text-[0.78rem] font-medium tracking-[0.1em] uppercase transition-colors min-h-[44px]"
               >
-                Reserve a Table
+                {storySec?.button_text || "Reserve a Table"}
               </MagneticButton>
               <button
                 type="button"
@@ -55,8 +59,8 @@ export function AboutPage({ onNavigate, onOpenReserve }: AboutPageProps) {
 
           <MaskImageReveal className="lg:col-span-6 bg-[#12352B]">
             <SafeImage
-              src={ASSETS.craftCocktails}
-              alt="Signature spiced cocktails at the Deccan Spice bar"
+              src={storySec?.image_url || ASSETS.craftCocktails}
+              alt={storySec?.image_alt || "Signature spiced cocktails at the Deccan Spice bar"}
               loading="eager"
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="w-full aspect-[4/3] object-cover"

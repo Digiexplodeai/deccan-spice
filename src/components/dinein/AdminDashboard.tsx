@@ -11,6 +11,8 @@ import {
   Eye,
   EyeOff,
   Flame,
+  Globe,
+  Image as ImageIcon,
   LayoutGrid,
   Lock,
   LogOut,
@@ -46,8 +48,11 @@ import {
 import { playChime } from "./audio";
 import { PrintableQRCards } from "./PrintableQRCards";
 import { useNoIndex } from "./useNoIndex";
+import { AdminCmsSection } from "../admin/AdminCmsSection";
+import { MediaLibrary } from "../admin/MediaLibrary";
+import { ImageUploader } from "../admin/ImageUploader";
 
-type AdminTab = "orders" | "service" | "tables" | "menu" | "settings" | "reports";
+type AdminTab = "orders" | "service" | "tables" | "menu" | "website" | "media" | "reports" | "settings";
 
 export function AdminDashboard() {
   useNoIndex();
@@ -101,6 +106,7 @@ export function AdminDashboard() {
   const [itemIsVeg, setItemIsVeg] = useState(false);
   const [itemSpiceLevel, setItemSpiceLevel] = useState<number>(0);
   const [itemImageUrl, setItemImageUrl] = useState("");
+  const [itemImageKey, setItemImageKey] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Category form state
@@ -502,6 +508,7 @@ export function AdminDashboard() {
         is_veg: itemIsVeg,
         spice_level: itemSpiceLevel,
         image_url: itemImageUrl.trim() || null,
+        image_key: itemImageKey.trim() || null,
         is_available: editingItem ? editingItem.is_available : true,
       };
 
@@ -825,6 +832,32 @@ export function AdminDashboard() {
           >
             <LayoutGrid className="w-4 h-4" />
             <span>Menu Manager</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("website")}
+            className={`px-3 py-2 text-xs tracking-wider uppercase font-medium flex items-center gap-2 border-b-2 transition-colors shrink-0 ${
+              activeTab === "website"
+                ? "border-[#D9B780] text-[#D9B780] bg-[#12352B]/40"
+                : "border-transparent text-[#F7F2E9]/60 hover:text-[#F7F2E9]"
+            }`}
+          >
+            <Globe className="w-4 h-4" />
+            <span>Website CMS</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("media")}
+            className={`px-3 py-2 text-xs tracking-wider uppercase font-medium flex items-center gap-2 border-b-2 transition-colors shrink-0 ${
+              activeTab === "media"
+                ? "border-[#D9B780] text-[#D9B780] bg-[#12352B]/40"
+                : "border-transparent text-[#F7F2E9]/60 hover:text-[#F7F2E9]"
+            }`}
+          >
+            <ImageIcon className="w-4 h-4" />
+            <span>Media Library</span>
           </button>
 
           <button
@@ -1315,6 +1348,7 @@ export function AdminDashboard() {
                     setItemIsVeg(false);
                     setItemSpiceLevel(0);
                     setItemImageUrl("");
+                    setItemImageKey("");
                     setItemModalOpen(true);
                   }}
                   className="px-3 py-2 bg-[#811C36] hover:bg-[#67142A] border border-[#D9B780] text-xs uppercase tracking-wider text-[#FFF9F1] font-semibold flex items-center gap-1.5"
@@ -1404,6 +1438,7 @@ export function AdminDashboard() {
                                   setItemIsVeg(item.is_veg);
                                   setItemSpiceLevel(item.spice_level);
                                   setItemImageUrl(item.image_url || "");
+                                  setItemImageKey((item as any).image_key || "");
                                   setItemModalOpen(true);
                                 }}
                                 className="text-[#D9B780] hover:text-[#FFF9F1] p-1"
@@ -1571,6 +1606,12 @@ export function AdminDashboard() {
             </form>
           </div>
         )}
+
+        {/* ===================== TAB: WEBSITE CMS ===================== */}
+        {activeTab === "website" && <AdminCmsSection />}
+
+        {/* ===================== TAB: MEDIA LIBRARY ===================== */}
+        {activeTab === "media" && <MediaLibrary />}
       </main>
 
       {/* Printable Sheet View Modal */}
@@ -1872,31 +1913,23 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Image Input + Supabase Storage Upload */}
+              {/* Image Input via ImageUploader (Cloudflare R2 + WebP) */}
               <div>
-                <label className="block text-[#D9B780] uppercase tracking-wider mb-1">
-                  Dish Image (URL or Upload to Storage)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="/src/assets/images/... or https://..."
-                    value={itemImageUrl}
-                    onChange={(e) => setItemImageUrl(e.target.value)}
-                    className="flex-1 bg-[#12352B]/30 border border-[#D9B780]/30 p-2.5 text-[#FFF9F1]"
-                  />
-                  <label className="px-3 py-2 bg-[#12352B] border border-[#D9B780]/60 text-[#D9B780] hover:text-[#FFF9F1] cursor-pointer flex items-center gap-1.5 shrink-0">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{isUploadingImage ? "Uploading..." : "Upload"}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={isUploadingImage}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                <ImageUploader
+                  label="Dish Image"
+                  recommendedSize="1200x900 (Compressed WebP stored on Cloudflare R2)"
+                  folder="menu"
+                  value={itemImageUrl}
+                  imageKey={itemImageKey}
+                  onChange={(url, key) => {
+                    setItemImageUrl(url);
+                    setItemImageKey(key || "");
+                  }}
+                  onRemove={() => {
+                    setItemImageUrl("");
+                    setItemImageKey("");
+                  }}
+                />
               </div>
 
               <div className="pt-3 flex justify-end gap-3">

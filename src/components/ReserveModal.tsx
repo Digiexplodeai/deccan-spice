@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Calendar, CheckCircle2, Clock, Phone, Users, X } from "lucide-react";
 import { SITE_INFO } from "../data/site";
+import { useCMS } from "../lib/cmsContext";
 
 interface ReserveModalProps {
   isOpen: boolean;
@@ -19,6 +20,9 @@ const TIME_SLOTS = [
 ];
 
 export function ReserveModal({ isOpen, onClose }: ReserveModalProps) {
+  const { settings } = useCMS();
+  const phoneDisplay = settings.phone || SITE_INFO.phoneDisplay;
+  const phoneHref = settings.phone ? `tel:${settings.phone.replace(/[^0-9+]/g, "")}` : SITE_INFO.phoneHref;
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -268,11 +272,11 @@ export function ReserveModal({ isOpen, onClose }: ReserveModalProps) {
 
                 <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#D9B780]/20">
                   <a
-                    href={SITE_INFO.phoneHref}
+                    href={phoneHref}
                     className="inline-flex items-center gap-1.5 text-[0.8rem] text-[#F7F2E9] hover:text-[#D9B780] tabular-nums min-h-[44px]"
                   >
                     <Phone className="w-3.5 h-3.5 text-[#D9B780]" />
-                    {SITE_INFO.phoneDisplay}
+                    {phoneDisplay}
                   </a>
 
                   <button
