@@ -1,0 +1,6 @@
+{
+  "name": "Deccan Spice Pompano",
+  "description": "Indian Kitchen & Bar in Pompano Marketplace, Pompano Beach, FL. Authentic Hyderabadi Dum Biryanis, Tandoori Sizzlers, Craft Cocktails, and Friday & Weekend Buffet.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

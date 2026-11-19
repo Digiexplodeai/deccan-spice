@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+:root {
+  --obsidian: #10110F;
+  --emerald: #12352B;
+  --ivory: #F7F2E9;
+  --gold: #D9B780;
+  --burgundy: #811C36;
+  --burgundy-hover: #67142A;
+  --soft-white: #FFF9F1;
+  --muted-dark: #4C453E;
+}
+
+@layer base {
+  html {
+    font-size: 16px;
+    background-color: var(--obsidian);
+    color: var(--soft-white);
+    font-family: "Manrope", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body {
+    background-color: var(--obsidian);
+    color: var(--soft-white);
+    cursor: auto;
+    overflow-x: clip;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  summary,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="submit"],
+  input[type="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    text-wrap: balance;
+  }
+}
+
+.luxury-container {
+  width: min(100% - 2rem, 1440px);
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .luxury-container {
+    width: min(100% - 4.5rem, 1440px);
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Subtle film grain texture for dark cinematic surfaces */
+.film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Restrained Deccan architectural lattice pattern */
+.jali-ornament {
+  background-image: url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23D9B780' stroke-opacity='0.045' stroke-width='1'%3E%3Cpath d='M32 4 L60 32 L32 60 L4 32 Z'/%3E%3Ccircle cx='32' cy='32' r='10'/%3E%3Cpath d='M32 0 V14 M32 50 V64 M0 32 H14 M50 32 H64'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Continuous smooth GPU marquee strip */
+@keyframes marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee-scroll 34s linear infinite;
+}
+
+.marquee-wrapper:hover .marquee-track,
+.marquee-wrapper:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Gentle continuous ambient drift for full-screen dining photography */
+@keyframes ken-burns-ambient {
+  0% {
+    transform: scale(1.01) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.065) translate3d(-0.6%, -0.6%, 0);
+  }
+  100% {
+    transform: scale(1.01) translate3d(0, 0, 0);
+  }
+}
+
+.animate-ken-burns {
+  animation: ken-burns-ambient 24s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .marquee-track,
+  .animate-ken-burns {
+    animation: none !important;
+    transform: none !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
