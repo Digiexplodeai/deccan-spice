@@ -30,6 +30,16 @@ const AboutPage = lazy(() =>
 const ContactPage = lazy(() =>
   import("./components/ContactPage").then((m) => ({ default: m.ContactPage }))
 );
+const OrderCustomerPage = lazy(() =>
+  import("./components/dinein/OrderCustomerPage").then((m) => ({
+    default: m.OrderCustomerPage,
+  }))
+);
+const AdminDashboard = lazy(() =>
+  import("./components/dinein/AdminDashboard").then((m) => ({
+    default: m.AdminDashboard,
+  }))
+);
 
 function AppShell() {
   const [route, setRoute] = useState<RouteId>("home");
@@ -190,6 +200,53 @@ function AppShell() {
 }
 
 export default function App() {
+  const [currentPath, setCurrentPath] = useState(
+    typeof window !== "undefined" ? window.location.pathname : "/"
+  );
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener("popstate", handleLocationChange);
+    return () => window.removeEventListener("popstate", handleLocationChange);
+  }, []);
+
+  if (currentPath.startsWith("/order")) {
+    return (
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-[#10110F] text-[#D9B780] flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-8 h-8 rounded-full border-2 border-[#D9B780] border-t-transparent animate-spin mb-3" />
+            <span className="text-xs tracking-widest uppercase font-serif">
+              Deccan Spice Dine-In
+            </span>
+          </div>
+        }
+      >
+        <OrderCustomerPage />
+      </Suspense>
+    );
+  }
+
+  if (currentPath.startsWith("/admin")) {
+    return (
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-[#10110F] text-[#D9B780] flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-8 h-8 rounded-full border-2 border-[#D9B780] border-t-transparent animate-spin mb-3" />
+            <span className="text-xs tracking-widest uppercase font-serif">
+              Deccan Spice Staff Portal
+            </span>
+          </div>
+        }
+      >
+        <AdminDashboard />
+      </Suspense>
+    );
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <AnimationProvider>

@@ -220,7 +220,13 @@ export function Footer({ onNavigate, onOpenReserve }: FooterProps) {
           <p>
             &copy; {new Date().getFullYear()} {SITE_INFO.name}. All rights reserved.
           </p>
-          <p>Pompano Beach, Florida</p>
+          <div className="flex items-center gap-3">
+            <span>Pompano Beach, Florida</span>
+            <span className="opacity-40">•</span>
+            <a href="/admin" className="hover:text-[#D9B780] transition-colors">
+              Staff Portal
+            </a>
+          </div>
         </div>
       </div>
     </footer>
